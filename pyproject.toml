@@ -1,0 +1,38 @@
+[project]
+name = "audio-tool"
+version = "0.1.0"
+description = "Audio processing toolkit with transcription and speaker diarization"
+requires-python = ">=3.13"
+dependencies = [
+    # CLI
+    "click",
+    # Transcription dependencies
+    "torch",
+    "torchaudio",
+    "openai-whisper",
+    "whisper-timestamped",
+    "pyannote-audio",
+    "huggingface-hub",
+    # Speechbrain fork with kwargs compatibility fix for pyannote-audio 4.x
+    "speechbrain @ git+https://github.com/OPpuolitaival/speechbrain.git",
+    "librosa",
+    "soundfile",
+    "transformers",
+    # Utilities
+    "numpy",
+    "scipy",
+    "requests",
+]
+
+[project.scripts]
+audio-tool = "audio_tool.cli:main"
+
+[tool.uv]
+package = true
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
