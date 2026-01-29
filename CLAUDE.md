@@ -13,13 +13,16 @@ audio-tool/
 │   ├── cli.py                  # Click group entry point
 │   ├── config.py               # HuggingFace token handling
 │   ├── transcriber.py          # Transcription engine (Whisper + Pyannote)
+│   ├── normalization.py        # Audio normalization (FFmpeg filters)
 │   └── commands/
 │       ├── __init__.py
-│       └── audio2json.py       # audio2json subcommand
+│       ├── audio2json.py       # audio2json subcommand
+│       └── normalize.py        # normalize subcommand
 ```
 
 ## Commands
 - `audio-tool audio2json <file>` - Transcribe audio to JSON with speaker diarization
+- `audio-tool normalize <input> <output>` - Normalize audio loudness (requires FFmpeg)
 
 ## Key Dependencies
 - **Whisper backends**: whisper-timestamped (CPU), mlx-whisper (Mac)

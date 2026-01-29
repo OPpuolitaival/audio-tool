@@ -1,6 +1,6 @@
 # audio-tool
 
-Audio processing CLI with transcription and speaker diarization.
+Audio processing CLI with transcription, speaker diarization, and loudness normalization.
 
 ## Installation
 
@@ -81,7 +81,34 @@ uv run audio-tool audio2json -d pyannote/speaker-diarization-community-1 recordi
 uv run audio-tool audio2json -w mlx-turbo -d pyannote/speaker-diarization-community-1 recording.mp3
 ```
 
-## Output Format
+### normalize
+
+Normalize audio loudness using FFmpeg filters. Requires FFmpeg to be installed.
+
+```bash
+# Basic usage (speechnorm method, best for speech)
+uv run audio-tool normalize input.mp3 output.mp3
+
+# Dynamic normalization (best for mixed content with music)
+uv run audio-tool normalize -m dynaudnorm input.mp3 output.mp3
+
+# Custom loudness target (-16 LUFS)
+uv run audio-tool normalize --lufs -16 input.wav output.wav
+
+# Gentler speech normalization
+uv run audio-tool normalize -e 20 input.mp3 output.mp3
+```
+
+**Methods:**
+- `speechnorm` - Best for speech-heavy content (podcasts, radio programs)
+- `dynaudnorm` - Best for mixed content with speech and music
+
+**Key options:**
+- `--lufs` / `-I` - Target loudness in LUFS (default: -18)
+- `--true-peak` / `-TP` - Maximum true peak in dB (default: -1)
+- `--method` / `-m` - Normalization method
+
+## Output Format (audio2json)
 
 JSON output includes:
 - `metadata` - Processing info (version, timestamps, models used)
@@ -109,4 +136,5 @@ Example segment:
 ```bash
 uv run audio-tool --help
 uv run audio-tool audio2json --help
+uv run audio-tool normalize --help
 ```

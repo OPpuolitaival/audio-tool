@@ -3,7 +3,7 @@
 import click
 
 from audio_tool import __version__
-from audio_tool.commands import audio2json
+from audio_tool.commands import audio2json, normalize
 
 
 @click.group()
@@ -19,6 +19,7 @@ def main():
 
 # Register commands
 main.add_command(audio2json)
+main.add_command(normalize)
 
 
 if __name__ == "__main__":
