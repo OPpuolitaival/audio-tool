@@ -81,6 +81,35 @@ uv run audio-tool audio2json -d pyannote/speaker-diarization-community-1 recordi
 uv run audio-tool audio2json -w mlx-turbo -d pyannote/speaker-diarization-community-1 recording.mp3
 ```
 
+### analyze
+
+Analyze audio quality metrics. Requires FFmpeg to be installed.
+
+```bash
+# Basic analysis (text output to stdout)
+uv run audio-tool analyze recording.mp3
+
+# JSON output
+uv run audio-tool analyze -f json recording.mp3
+
+# Save to file
+uv run audio-tool analyze -f json -o report.json recording.mp3
+uv run audio-tool analyze -f txt -o report.txt recording.mp3
+
+# Custom LUFS thresholds
+uv run audio-tool analyze --lufs-min -20 --lufs-max -16 recording.mp3
+```
+
+**Metrics analyzed:**
+- Silence detection (start, end, middle gaps)
+- Loudness (integrated LUFS, loudness range, true peak)
+- Clipping detection (max volume, 0dB samples)
+- Phase correlation (stereo files)
+
+**Output formats:**
+- `text` / `txt` - Human-readable report
+- `json` - Full metrics for programmatic use
+
 ### normalize
 
 Normalize audio loudness using FFmpeg filters. Requires FFmpeg to be installed.
@@ -135,6 +164,7 @@ Example segment:
 
 ```bash
 uv run audio-tool --help
+uv run audio-tool analyze --help
 uv run audio-tool audio2json --help
 uv run audio-tool normalize --help
 ```

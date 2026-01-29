@@ -14,13 +14,16 @@ audio-tool/
 │   ├── config.py               # HuggingFace token handling
 │   ├── transcriber.py          # Transcription engine (Whisper + Pyannote)
 │   ├── normalization.py        # Audio normalization (FFmpeg filters)
+│   ├── analyzer.py             # Audio quality analysis (FFmpeg)
 │   └── commands/
 │       ├── __init__.py
+│       ├── analyze.py          # analyze subcommand
 │       ├── audio2json.py       # audio2json subcommand
 │       └── normalize.py        # normalize subcommand
 ```
 
 ## Commands
+- `audio-tool analyze <file>` - Analyze audio quality (silence, LUFS, clipping, phase)
 - `audio-tool audio2json <file>` - Transcribe audio to JSON with speaker diarization
 - `audio-tool normalize <input> <output>` - Normalize audio loudness (requires FFmpeg)
 

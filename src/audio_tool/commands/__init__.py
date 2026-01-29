@@ -1,6 +1,7 @@
 """CLI commands for audio-tool."""
 
+from .analyze import analyze
 from .audio2json import audio2json
 from .normalize import normalize
 
-__all__ = ["audio2json", "normalize"]
+__all__ = ["analyze", "audio2json", "normalize"]
