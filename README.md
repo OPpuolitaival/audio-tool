@@ -137,6 +137,33 @@ uv run audio-tool normalize -e 20 input.mp3 output.mp3
 - `--true-peak` / `-TP` - Maximum true peak in dB (default: -1)
 - `--method` / `-m` - Normalization method
 
+### trim
+
+Trim silence from audio files. Requires FFmpeg to be installed.
+
+```bash
+# Auto-detect and trim silence
+uv run audio-tool trim input.mp3 output.mp3
+
+# Analyze only (show recommended trim points)
+uv run audio-tool trim -a input.mp3
+
+# Manual trim from 5s to 120s
+uv run audio-tool trim -s 5 -e 120 input.mp3 output.mp3
+
+# Custom silence threshold (-50 dB)
+uv run audio-tool trim --silence-threshold -50 input.mp3 output.mp3
+
+# Keep more silence at end (for fade-out)
+uv run audio-tool trim --keep-end 3.0 input.mp3 output.mp3
+```
+
+**Features:**
+- Auto-detects silence at start and end
+- Keeps configurable amount of silence (default: 0.5s start, 2.0s end)
+- Manual start/end time override
+- Analyze-only mode to preview trim points
+
 ## Output Format (audio2json)
 
 JSON output includes:
@@ -167,4 +194,5 @@ uv run audio-tool --help
 uv run audio-tool analyze --help
 uv run audio-tool audio2json --help
 uv run audio-tool normalize --help
+uv run audio-tool trim --help
 ```

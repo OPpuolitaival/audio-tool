@@ -15,17 +15,20 @@ audio-tool/
 │   ├── transcriber.py          # Transcription engine (Whisper + Pyannote)
 │   ├── normalization.py        # Audio normalization (FFmpeg filters)
 │   ├── analyzer.py             # Audio quality analysis (FFmpeg)
+│   ├── trimmer.py              # Audio trimming (FFmpeg)
 │   └── commands/
 │       ├── __init__.py
 │       ├── analyze.py          # analyze subcommand
 │       ├── audio2json.py       # audio2json subcommand
-│       └── normalize.py        # normalize subcommand
+│       ├── normalize.py        # normalize subcommand
+│       └── trim.py             # trim subcommand
 ```
 
 ## Commands
 - `audio-tool analyze <file>` - Analyze audio quality (silence, LUFS, clipping, phase)
 - `audio-tool audio2json <file>` - Transcribe audio to JSON with speaker diarization
 - `audio-tool normalize <input> <output>` - Normalize audio loudness (requires FFmpeg)
+- `audio-tool trim <input> <output>` - Trim silence from audio files (requires FFmpeg)
 
 ## Key Dependencies
 - **Whisper backends**: whisper-timestamped (CPU), mlx-whisper (Mac)
