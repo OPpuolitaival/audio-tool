@@ -19,13 +19,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 __all__ = [
-    'SpeechnormParams',
-    'DynaudnormParams',
-    'LoudnormParams',
-    'normalize_speechnorm',
-    'normalize_dynaudnorm',
-    'detect_audio_codec',
-    'detect_sample_rate',
+    "SpeechnormParams",
+    "DynaudnormParams",
+    "LoudnormParams",
+    "normalize_speechnorm",
+    "normalize_dynaudnorm",
+    "detect_audio_codec",
+    "detect_sample_rate",
 ]
 
 
@@ -35,11 +35,15 @@ class LoudnormParams:
 
     integrated_lufs: float = -18.0  # Target integrated loudness (I)
     true_peak_db: float = -1.0  # Maximum true peak (TP)
-    lra: float = 4.0  # Loudness range target (LRA) - lower than default for compressed audio
+    lra: float = (
+        4.0  # Loudness range target (LRA) - lower than default for compressed audio
+    )
 
     def to_filter(self) -> str:
         """Return ffmpeg filter string."""
-        return f'loudnorm=I={self.integrated_lufs}:TP={self.true_peak_db}:LRA={self.lra}'
+        return (
+            f"loudnorm=I={self.integrated_lufs}:TP={self.true_peak_db}:LRA={self.lra}"
+        )
 
 
 @dataclass
@@ -65,7 +69,7 @@ class SpeechnormParams:
 
     def to_filter(self) -> str:
         """Return ffmpeg filter string."""
-        return f'speechnorm=e={self.expansion}:r={self.recovery}:l={self.lim}'
+        return f"speechnorm=e={self.expansion}:r={self.recovery}:l={self.lim}"
 
 
 @dataclass
@@ -98,13 +102,15 @@ class DynaudnormParams:
     def __post_init__(self):
         # Validate gauss_size is odd and in valid range (FFmpeg requirement)
         if self.gauss_size < 3 or self.gauss_size > 301:
-            raise ValueError(f'gauss_size must be between 3 and 301, got {self.gauss_size}')
+            raise ValueError(
+                f"gauss_size must be between 3 and 301, got {self.gauss_size}"
+            )
         if self.gauss_size % 2 == 0:
-            raise ValueError(f'gauss_size must be an odd number, got {self.gauss_size}')
+            raise ValueError(f"gauss_size must be an odd number, got {self.gauss_size}")
 
     def to_filter(self) -> str:
         """Return ffmpeg filter string."""
-        return f'dynaudnorm=f={self.frame_length}:g={self.gauss_size}:p={self.peak}:m={self.max_gain}:s={self.compress}'
+        return f"dynaudnorm=f={self.frame_length}:g={self.gauss_size}:p={self.peak}:m={self.max_gain}:s={self.compress}"
 
 
 def detect_audio_codec(input_path: str) -> tuple[str, Optional[str]]:
@@ -125,48 +131,58 @@ def detect_audio_codec(input_path: str) -> tuple[str, Optional[str]]:
         ValueError: If codec cannot be determined
     """
     if not os.path.exists(input_path):
-        raise FileNotFoundError(f'Input file not found: {input_path}')
+        raise FileNotFoundError(f"Input file not found: {input_path}")
 
-    cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', '-select_streams', 'a:0', input_path]
+    cmd = [
+        "ffprobe",
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_streams",
+        "-select_streams",
+        "a:0",
+        input_path,
+    ]
 
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout)
 
-    if not data.get('streams'):
-        raise ValueError(f'No audio streams found in {input_path}')
+    if not data.get("streams"):
+        raise ValueError(f"No audio streams found in {input_path}")
 
-    audio_stream = data['streams'][0]
-    codec_name = audio_stream.get('codec_name')
+    audio_stream = data["streams"][0]
+    codec_name = audio_stream.get("codec_name")
 
     if not codec_name:
-        raise ValueError(f'Could not determine codec for {input_path}')
+        raise ValueError(f"Could not determine codec for {input_path}")
 
     # Map codec names to FFmpeg encoder names
     codec_map = {
-        'mp3': 'libmp3lame',
-        'aac': 'aac',
-        'vorbis': 'libvorbis',
-        'opus': 'libopus',
-        'flac': 'flac',
-        'pcm_s16le': 'pcm_s16le',
-        'pcm_s24le': 'pcm_s24le',
-        'pcm_s32le': 'pcm_s32le',
-        'pcm_f32le': 'pcm_f32le',
-        'pcm_s16be': 'pcm_s16be',
-        'pcm_s24be': 'pcm_s24be',
+        "mp3": "libmp3lame",
+        "aac": "aac",
+        "vorbis": "libvorbis",
+        "opus": "libopus",
+        "flac": "flac",
+        "pcm_s16le": "pcm_s16le",
+        "pcm_s24le": "pcm_s24le",
+        "pcm_s32le": "pcm_s32le",
+        "pcm_f32le": "pcm_f32le",
+        "pcm_s16be": "pcm_s16be",
+        "pcm_s24be": "pcm_s24be",
     }
 
     encoder_name = codec_map.get(codec_name, codec_name)
 
     # Determine if codec is lossy and needs bitrate
-    lossy_codecs = {'libmp3lame', 'aac', 'libvorbis', 'libopus'}
+    lossy_codecs = {"libmp3lame", "aac", "libvorbis", "libopus"}
     bitrate = None
 
     if encoder_name in lossy_codecs:
-        bit_rate = audio_stream.get('bit_rate')
+        bit_rate = audio_stream.get("bit_rate")
         if bit_rate:
             bitrate_k = int(bit_rate) // 1000
-            bitrate = f'{bitrate_k}k'
+            bitrate = f"{bitrate_k}k"
 
     return encoder_name, bitrate
 
@@ -186,15 +202,25 @@ def detect_sample_rate(input_path: str) -> Optional[int]:
         subprocess.CalledProcessError: If ffprobe fails
     """
     if not os.path.exists(input_path):
-        raise FileNotFoundError(f'Input file not found: {input_path}')
+        raise FileNotFoundError(f"Input file not found: {input_path}")
 
-    cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', '-select_streams', 'a:0', input_path]
+    cmd = [
+        "ffprobe",
+        "-v",
+        "quiet",
+        "-print_format",
+        "json",
+        "-show_streams",
+        "-select_streams",
+        "a:0",
+        input_path,
+    ]
 
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout)
 
-    if data.get('streams'):
-        sample_rate = data['streams'][0].get('sample_rate')
+    if data.get("streams"):
+        sample_rate = data["streams"][0].get("sample_rate")
         if sample_rate:
             return int(sample_rate)
     return None
@@ -218,7 +244,7 @@ def _run_normalization(
         audio_bitrate: Audio bitrate for lossy codecs (default: auto-detect)
     """
     if not os.path.exists(input_path):
-        raise FileNotFoundError(f'Input file not found: {input_path}')
+        raise FileNotFoundError(f"Input file not found: {input_path}")
 
     # Auto-detect codec if not specified
     if audio_codec is None or audio_bitrate is None:
@@ -233,7 +259,7 @@ def _run_normalization(
     # which can cause ~4x file size increase if not resampled back to original rate
     sample_rate = detect_sample_rate(input_path)
     if sample_rate:
-        filter_chain = f'{filter_chain},aresample={sample_rate}'
+        filter_chain = f"{filter_chain},aresample={sample_rate}"
 
     # Create output directory if needed
     output_dir = os.path.dirname(output_path)
@@ -241,10 +267,10 @@ def _run_normalization(
         os.makedirs(output_dir)
 
     # Build ffmpeg command
-    cmd = ['ffmpeg', '-y', '-i', input_path, '-af', filter_chain, '-c:a', audio_codec]
+    cmd = ["ffmpeg", "-y", "-i", input_path, "-af", filter_chain, "-c:a", audio_codec]
 
     if audio_bitrate:
-        cmd.extend(['-b:a', audio_bitrate])
+        cmd.extend(["-b:a", audio_bitrate])
 
     cmd.append(output_path)
 
@@ -291,9 +317,11 @@ def normalize_speechnorm(
     if loudnorm_params is None:
         loudnorm_params = LoudnormParams()
 
-    filter_chain = f'{speechnorm_params.to_filter()},{loudnorm_params.to_filter()}'
+    filter_chain = f"{speechnorm_params.to_filter()},{loudnorm_params.to_filter()}"
 
-    _run_normalization(input_path, output_path, filter_chain, audio_codec, audio_bitrate)
+    _run_normalization(
+        input_path, output_path, filter_chain, audio_codec, audio_bitrate
+    )
 
 
 def normalize_dynaudnorm(
@@ -336,6 +364,8 @@ def normalize_dynaudnorm(
     if loudnorm_params is None:
         loudnorm_params = LoudnormParams()
 
-    filter_chain = f'{dynaudnorm_params.to_filter()},{loudnorm_params.to_filter()}'
+    filter_chain = f"{dynaudnorm_params.to_filter()},{loudnorm_params.to_filter()}"
 
-    _run_normalization(input_path, output_path, filter_chain, audio_codec, audio_bitrate)
+    _run_normalization(
+        input_path, output_path, filter_chain, audio_codec, audio_bitrate
+    )

@@ -1,7 +1,5 @@
 """normalize command - normalize audio loudness using FFmpeg filters."""
 
-import sys
-
 import click
 
 from audio_tool.normalization import (
@@ -17,74 +15,77 @@ from audio_tool.normalization import (
 @click.argument("audio_file", type=click.Path(exists=True))
 @click.argument("output_file", type=click.Path())
 @click.option(
-    "--method", "-m",
+    "--method",
+    "-m",
     type=click.Choice(["speechnorm", "dynaudnorm"]),
     default="speechnorm",
-    help="Normalization method (default: speechnorm)"
+    help="Normalization method (default: speechnorm)",
 )
 @click.option(
-    "--lufs", "-I",
+    "--lufs",
+    "-I",
     type=float,
     default=-18.0,
-    help="Target integrated loudness in LUFS (default: -18)"
+    help="Target integrated loudness in LUFS (default: -18)",
 )
 @click.option(
-    "--true-peak", "-TP",
+    "--true-peak",
+    "-TP",
     type=float,
     default=-1.0,
-    help="Maximum true peak in dB (default: -1)"
+    help="Maximum true peak in dB (default: -1)",
 )
 @click.option(
-    "--lra", "-LRA",
-    type=float,
-    default=4.0,
-    help="Loudness range target (default: 4)"
+    "--lra", "-LRA", type=float, default=4.0, help="Loudness range target (default: 4)"
 )
 @click.option(
-    "--expansion", "-e",
+    "--expansion",
+    "-e",
     type=float,
     default=25.0,
-    help="Speechnorm expansion factor (default: 25)"
+    help="Speechnorm expansion factor (default: 25)",
 )
 @click.option(
-    "--recovery", "-r",
+    "--recovery",
+    "-r",
     type=float,
     default=0.0001,
-    help="Speechnorm recovery time (default: 0.0001)"
+    help="Speechnorm recovery time (default: 0.0001)",
 )
 @click.option(
-    "--frame-length", "-f",
+    "--frame-length",
+    "-f",
     type=int,
     default=150,
-    help="Dynaudnorm frame length in ms (default: 150)"
+    help="Dynaudnorm frame length in ms (default: 150)",
 )
 @click.option(
-    "--gauss-size", "-g",
+    "--gauss-size",
+    "-g",
     type=int,
     default=15,
-    help="Dynaudnorm gaussian window size, must be odd (default: 15)"
+    help="Dynaudnorm gaussian window size, must be odd (default: 15)",
 )
 @click.option(
     "--max-gain",
     type=float,
     default=20.0,
-    help="Dynaudnorm maximum gain in dB (default: 20)"
+    help="Dynaudnorm maximum gain in dB (default: 20)",
 )
 @click.option(
-    "--compress", "-s",
+    "--compress",
+    "-s",
     type=float,
     default=3.0,
-    help="Dynaudnorm compression factor (default: 3)"
+    help="Dynaudnorm compression factor (default: 3)",
 )
 @click.option(
-    "--codec",
-    default=None,
-    help="Audio codec (default: auto-detect from input)"
+    "--codec", default=None, help="Audio codec (default: auto-detect from input)"
 )
 @click.option(
     "--bitrate",
     default=None,
-    help="Audio bitrate for lossy codecs (default: auto-detect)"
+    help="Audio bitrate for lossy codecs (default: auto-detect)",
 )
 def normalize(
     audio_file: str,
@@ -139,8 +140,11 @@ def normalize(
                 expansion=expansion,
                 recovery=recovery,
             )
-            click.echo(f"Normalizing with speechnorm + loudnorm...", err=True)
-            click.echo(f"  Filter: {speechnorm_params.to_filter()},{loudnorm_params.to_filter()}", err=True)
+            click.echo("Normalizing with speechnorm + loudnorm...", err=True)
+            click.echo(
+                f"  Filter: {speechnorm_params.to_filter()},{loudnorm_params.to_filter()}",
+                err=True,
+            )
             normalize_speechnorm(
                 audio_file,
                 output_file,
@@ -156,8 +160,11 @@ def normalize(
                 max_gain=max_gain,
                 compress=compress,
             )
-            click.echo(f"Normalizing with dynaudnorm + loudnorm...", err=True)
-            click.echo(f"  Filter: {dynaudnorm_params.to_filter()},{loudnorm_params.to_filter()}", err=True)
+            click.echo("Normalizing with dynaudnorm + loudnorm...", err=True)
+            click.echo(
+                f"  Filter: {dynaudnorm_params.to_filter()},{loudnorm_params.to_filter()}",
+                err=True,
+            )
             normalize_dynaudnorm(
                 audio_file,
                 output_file,

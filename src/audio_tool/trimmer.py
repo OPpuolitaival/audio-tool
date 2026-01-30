@@ -10,7 +10,7 @@ import os
 import subprocess
 from typing import Optional
 
-from audio_tool.analyzer import AudioQualityResult, analyze_audio_quality, check_audio_quality
+from audio_tool.analyzer import AudioQualityResult, analyze_audio_quality
 
 log = logging.getLogger(__name__)
 
@@ -33,13 +33,13 @@ def detect_trim_points(
     Returns:
         Tuple of (start_time, end_time) in seconds
     """
-    log.debug(f'Analyzing audio file: {audio_path}')
+    log.debug(f"Analyzing audio file: {audio_path}")
     result = analyze_audio_quality(audio_path, silence_thresh_db=silence_thresh_db)
 
-    log.debug('Detected silence:')
-    log.debug(f'  Start silence: {result.start_silence_sec:.2f} sec')
-    log.debug(f'  End silence: {result.end_silence_sec:.2f} sec')
-    log.debug(f'  Duration: {result.duration_sec:.2f} sec')
+    log.debug("Detected silence:")
+    log.debug(f"  Start silence: {result.start_silence_sec:.2f} sec")
+    log.debug(f"  End silence: {result.end_silence_sec:.2f} sec")
+    log.debug(f"  Duration: {result.duration_sec:.2f} sec")
 
     # Calculate trim points, keeping wanted silence
     if result.start_silence_sec > 0.1:
@@ -48,17 +48,24 @@ def detect_trim_points(
         start_time = 0
 
     if result.end_silence_sec > 0.1:
-        end_time = min(result.duration_sec, result.duration_sec - result.end_silence_sec + wanted_silence_end)
+        end_time = min(
+            result.duration_sec,
+            result.duration_sec - result.end_silence_sec + wanted_silence_end,
+        )
     else:
         end_time = result.duration_sec
 
     trimmed_duration = end_time - start_time
 
-    log.debug('Recommended trim points:')
-    log.debug(f'  Start: {start_time:.2f} sec (keeping {wanted_silence_start:.2f} sec silence)')
-    log.debug(f'  End: {end_time:.2f} sec (keeping {wanted_silence_end:.2f} sec silence)')
-    log.debug(f'  New duration: {trimmed_duration:.2f} sec')
-    log.debug(f'  Removed: {result.duration_sec - trimmed_duration:.2f} sec')
+    log.debug("Recommended trim points:")
+    log.debug(
+        f"  Start: {start_time:.2f} sec (keeping {wanted_silence_start:.2f} sec silence)"
+    )
+    log.debug(
+        f"  End: {end_time:.2f} sec (keeping {wanted_silence_end:.2f} sec silence)"
+    )
+    log.debug(f"  New duration: {trimmed_duration:.2f} sec")
+    log.debug(f"  Removed: {result.duration_sec - trimmed_duration:.2f} sec")
 
     return start_time, end_time
 
@@ -90,7 +97,7 @@ def trim_audio(
         AudioQualityResult of the output file
     """
     if not os.path.exists(input_path):
-        raise ValueError(f'Input file not found: {input_path}')
+        raise ValueError(f"Input file not found: {input_path}")
 
     # Determine trim points
     if auto_detect or (start_time is None and end_time is None):
@@ -101,18 +108,20 @@ def trim_audio(
         end_time = end_time if end_time is not None else detected_end
 
     if start_time is None or end_time is None:
-        raise ValueError('Either enable auto_detect or provide both start_time and end_time')
+        raise ValueError(
+            "Either enable auto_detect or provide both start_time and end_time"
+        )
 
     if start_time < 0 or end_time <= start_time:
-        raise ValueError(f'Invalid trim times: start={start_time}, end={end_time}')
+        raise ValueError(f"Invalid trim times: start={start_time}, end={end_time}")
 
     duration = end_time - start_time
 
-    log.debug('Trimming audio:')
-    log.debug(f'  Input: {input_path}')
-    log.debug(f'  Output: {output_path}')
-    log.debug(f'  Start: {start_time:.2f} sec')
-    log.debug(f'  Duration: {duration:.2f} sec')
+    log.debug("Trimming audio:")
+    log.debug(f"  Input: {input_path}")
+    log.debug(f"  Output: {output_path}")
+    log.debug(f"  Start: {start_time:.2f} sec")
+    log.debug(f"  Duration: {duration:.2f} sec")
 
     # Create output directory if needed
     output_dir = os.path.dirname(output_path)
@@ -121,46 +130,48 @@ def trim_audio(
 
     # Trim using FFmpeg - try copy first, then re-encode if needed
     cmd = [
-        'ffmpeg',
-        '-i',
+        "ffmpeg",
+        "-i",
         input_path,
-        '-ss',
+        "-ss",
         str(start_time),
-        '-t',
+        "-t",
         str(duration),
-        '-c:a',
-        'copy',
-        '-y',
+        "-c:a",
+        "copy",
+        "-y",
         output_path,
     ]
 
     try:
         subprocess.run(cmd, capture_output=True, text=True, check=True)
     except subprocess.CalledProcessError:
-        log.debug('  Codec copy failed, re-encoding...')
+        log.debug("  Codec copy failed, re-encoding...")
         # Determine codec based on extension
         output_ext = os.path.splitext(output_path)[1].lower()
-        if output_ext == '.mp3':
-            cmd[7] = 'libmp3lame'
-            cmd.extend(['-q:a', '0'])
-        elif output_ext == '.wav':
-            cmd[7] = 'pcm_s16le'
-        elif output_ext == '.flac':
-            cmd[7] = 'flac'
+        if output_ext == ".mp3":
+            cmd[7] = "libmp3lame"
+            cmd.extend(["-q:a", "0"])
+        elif output_ext == ".wav":
+            cmd[7] = "pcm_s16le"
+        elif output_ext == ".flac":
+            cmd[7] = "flac"
         else:
-            cmd[7] = 'libmp3lame'
-            cmd.extend(['-q:a', '0'])
+            cmd[7] = "libmp3lame"
+            cmd.extend(["-q:a", "0"])
         subprocess.run(cmd, capture_output=True, text=True, check=True)
 
-    log.debug('  Trimming complete!')
+    log.debug("  Trimming complete!")
 
     # Analyze output file
-    output_result = analyze_audio_quality(output_path, silence_thresh_db=silence_thresh_db)
+    output_result = analyze_audio_quality(
+        output_path, silence_thresh_db=silence_thresh_db
+    )
 
-    log.debug('Output file analysis:')
-    log.debug(f'  Duration: {output_result.duration_sec:.2f} sec')
-    log.debug(f'  Start silence: {output_result.start_silence_sec:.2f} sec')
-    log.debug(f'  End silence: {output_result.end_silence_sec:.2f} sec')
+    log.debug("Output file analysis:")
+    log.debug(f"  Duration: {output_result.duration_sec:.2f} sec")
+    log.debug(f"  Start silence: {output_result.start_silence_sec:.2f} sec")
+    log.debug(f"  End silence: {output_result.end_silence_sec:.2f} sec")
 
     return output_result
 
@@ -196,10 +207,10 @@ def remove_segments_with_crossfade(
         )
     """
     if not os.path.exists(input_path):
-        raise ValueError(f'Input file not found: {input_path}')
+        raise ValueError(f"Input file not found: {input_path}")
 
     if not segments_to_remove:
-        raise ValueError('No segments to remove provided')
+        raise ValueError("No segments to remove provided")
 
     # Sort segments by start time
     segments_to_remove = sorted(segments_to_remove, key=lambda x: x[0])
@@ -207,15 +218,19 @@ def remove_segments_with_crossfade(
     # Validate segments don't overlap
     for i in range(len(segments_to_remove) - 1):
         if segments_to_remove[i][1] > segments_to_remove[i + 1][0]:
-            raise ValueError(f'Overlapping segments: {segments_to_remove[i]} and {segments_to_remove[i + 1]}')
+            raise ValueError(
+                f"Overlapping segments: {segments_to_remove[i]} and {segments_to_remove[i + 1]}"
+            )
 
     # Get input duration
     input_result = analyze_audio_quality(input_path)
     total_duration = input_result.duration_sec
 
-    log.info(f'Removing {len(segments_to_remove)} segments from audio ({total_duration:.2f}s)')
+    log.info(
+        f"Removing {len(segments_to_remove)} segments from audio ({total_duration:.2f}s)"
+    )
     for i, (start, end) in enumerate(segments_to_remove):
-        log.info(f'  Segment {i + 1}: {start:.3f}s - {end:.3f}s ({end - start:.3f}s)')
+        log.info(f"  Segment {i + 1}: {start:.3f}s - {end:.3f}s ({end - start:.3f}s)")
 
     # Calculate segments to KEEP (inverse of segments to remove)
     segments_to_keep = []
@@ -223,9 +238,13 @@ def remove_segments_with_crossfade(
 
     for remove_start, remove_end in segments_to_remove:
         if remove_start < 0 or remove_end > total_duration:
-            raise ValueError(f'Segment {remove_start}-{remove_end} is outside audio duration {total_duration}')
+            raise ValueError(
+                f"Segment {remove_start}-{remove_end} is outside audio duration {total_duration}"
+            )
         if remove_end <= remove_start:
-            raise ValueError(f'Invalid segment: end ({remove_end}) must be greater than start ({remove_start})')
+            raise ValueError(
+                f"Invalid segment: end ({remove_end}) must be greater than start ({remove_start})"
+            )
 
         if remove_start > current_pos:
             segments_to_keep.append((current_pos, remove_start))
@@ -236,11 +255,11 @@ def remove_segments_with_crossfade(
         segments_to_keep.append((current_pos, total_duration))
 
     if not segments_to_keep:
-        raise ValueError('No audio would remain after removing all segments')
+        raise ValueError("No audio would remain after removing all segments")
 
-    log.info(f'Keeping {len(segments_to_keep)} segments:')
+    log.info(f"Keeping {len(segments_to_keep)} segments:")
     for i, (start, end) in enumerate(segments_to_keep):
-        log.info(f'  Part {i + 1}: {start:.3f}s - {end:.3f}s ({end - start:.3f}s)')
+        log.info(f"  Part {i + 1}: {start:.3f}s - {end:.3f}s ({end - start:.3f}s)")
 
     # Create output directory if needed
     output_dir = os.path.dirname(output_path)
@@ -261,58 +280,62 @@ def remove_segments_with_crossfade(
     # Build FFmpeg filter_complex for removing segments with crossfade
     filter_parts = []
     for i, (start, end) in enumerate(segments_to_keep):
-        filter_parts.append(f'[0:a]atrim=start={start:.6f}:end={end:.6f},asetpts=PTS-STARTPTS[seg{i}]')
+        filter_parts.append(
+            f"[0:a]atrim=start={start:.6f}:end={end:.6f},asetpts=PTS-STARTPTS[seg{i}]"
+        )
 
     # Chain acrossfade filters between segments
-    current_stream = '[seg0]'
+    current_stream = "[seg0]"
     for i in range(1, len(segments_to_keep)):
-        next_stream = f'[seg{i}]'
-        output_stream = f'[cf{i}]' if i < len(segments_to_keep) - 1 else '[aout]'
+        next_stream = f"[seg{i}]"
+        output_stream = f"[cf{i}]" if i < len(segments_to_keep) - 1 else "[aout]"
         filter_parts.append(
-            f'{current_stream}{next_stream}acrossfade=d={crossfade_duration:.6f}:c1=tri:c2=tri{output_stream}'
+            f"{current_stream}{next_stream}acrossfade=d={crossfade_duration:.6f}:c1=tri:c2=tri{output_stream}"
         )
         current_stream = output_stream
 
-    filter_complex = ';'.join(filter_parts)
+    filter_complex = ";".join(filter_parts)
 
     # Determine output codec based on file extension
     output_ext = os.path.splitext(output_path)[1].lower()
-    if output_ext == '.mp3':
-        codec_params = ['-c:a', 'libmp3lame', '-q:a', '0']
-    elif output_ext == '.wav':
-        codec_params = ['-c:a', 'pcm_s16le']
-    elif output_ext == '.flac':
-        codec_params = ['-c:a', 'flac']
+    if output_ext == ".mp3":
+        codec_params = ["-c:a", "libmp3lame", "-q:a", "0"]
+    elif output_ext == ".wav":
+        codec_params = ["-c:a", "pcm_s16le"]
+    elif output_ext == ".flac":
+        codec_params = ["-c:a", "flac"]
     else:
-        codec_params = ['-c:a', 'libmp3lame', '-q:a', '0']
+        codec_params = ["-c:a", "libmp3lame", "-q:a", "0"]
 
     cmd = [
-        'ffmpeg',
-        '-i',
+        "ffmpeg",
+        "-i",
         input_path,
-        '-filter_complex',
+        "-filter_complex",
         filter_complex,
-        '-map',
-        '[aout]',
+        "-map",
+        "[aout]",
         *codec_params,
-        '-y',
+        "-y",
         output_path,
     ]
 
-    log.info('Running FFmpeg with acrossfade filter...')
+    log.info("Running FFmpeg with acrossfade filter...")
     result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
-        log.error(f'FFmpeg error: {result.stderr}')
-        raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
+        log.error(f"FFmpeg error: {result.stderr}")
+        raise subprocess.CalledProcessError(
+            result.returncode, cmd, result.stdout, result.stderr
+        )
 
-    log.info('Segment removal complete!')
+    log.info("Segment removal complete!")
 
     # Analyze output file
     output_result = analyze_audio_quality(output_path)
 
-    log.info(f'Output duration: {output_result.duration_sec:.2f}s')
+    log.info(f"Output duration: {output_result.duration_sec:.2f}s")
     total_removed = sum(end - start for start, end in segments_to_remove)
-    log.info(f'Total removed: {total_removed:.2f}s')
+    log.info(f"Total removed: {total_removed:.2f}s")
 
     return output_result

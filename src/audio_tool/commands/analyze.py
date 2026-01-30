@@ -15,45 +15,44 @@ from audio_tool.analyzer import (
 @click.command()
 @click.argument("audio_file", type=click.Path(exists=True))
 @click.option(
-    "--output", "-o",
-    type=click.Path(),
-    help="Output file path (default: stdout)"
+    "--output", "-o", type=click.Path(), help="Output file path (default: stdout)"
 )
 @click.option(
-    "--format", "-f",
+    "--format",
+    "-f",
     "output_format",
     type=click.Choice(["text", "txt", "json"]),
     default="text",
-    help="Output format (default: text)"
+    help="Output format (default: text)",
 )
 @click.option(
     "--silence-threshold",
     type=float,
     default=-40.0,
-    help="Silence threshold in dB (default: -40)"
+    help="Silence threshold in dB (default: -40)",
 )
 @click.option(
     "--min-silence-length",
     type=float,
     default=0.1,
-    help="Minimum silence length in seconds (default: 0.1)"
+    help="Minimum silence length in seconds (default: 0.1)",
 )
 @click.option(
     "--include-waveform",
     is_flag=True,
-    help="Include waveform timeline data (increases output size)"
+    help="Include waveform timeline data (increases output size)",
 )
 @click.option(
     "--lufs-min",
     type=float,
     default=-18.5,
-    help="Minimum acceptable LUFS (default: -18.5)"
+    help="Minimum acceptable LUFS (default: -18.5)",
 )
 @click.option(
     "--lufs-max",
     type=float,
     default=-17.5,
-    help="Maximum acceptable LUFS (default: -17.5)"
+    help="Maximum acceptable LUFS (default: -17.5)",
 )
 def analyze(
     audio_file: str,
@@ -132,7 +131,10 @@ def analyze(
             errors = [c for c in checks if c.severity == "error"]
             warnings = [c for c in checks if c.severity == "warning"]
             if errors:
-                click.echo(f"Found {len(errors)} error(s), {len(warnings)} warning(s)", err=True)
+                click.echo(
+                    f"Found {len(errors)} error(s), {len(warnings)} warning(s)",
+                    err=True,
+                )
             else:
                 click.echo(f"Found {len(warnings)} warning(s)", err=True)
         else:

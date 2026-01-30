@@ -18,38 +18,33 @@ DIARIZATION_CHOICES = [d.value for d in DiarizationModel]
 
 @click.command()
 @click.argument("audio_file", type=click.Path(exists=True))
+@click.option("--language", "-l", default="fi", help="Language code (default: fi)")
 @click.option(
-    "--language", "-l",
-    default="fi",
-    help="Language code (default: fi)"
-)
-@click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
-    help="Output JSON file (default: prints to stdout)"
+    help="Output JSON file (default: prints to stdout)",
 )
 @click.option(
     "--huggingface-token",
     envvar="HUGGINGFACE_TOKEN",
-    help="HuggingFace API token (or set HUGGINGFACE_TOKEN/HF_TOKEN env var)"
+    help="HuggingFace API token (or set HUGGINGFACE_TOKEN/HF_TOKEN env var)",
 )
 @click.option(
-    "--whisper-backend", "-w",
+    "--whisper-backend",
+    "-w",
     type=click.Choice(WHISPER_CHOICES),
     default=WhisperBackend.WHISPER_TIMESTAMPED.value,
-    help="Whisper backend to use"
+    help="Whisper backend to use",
 )
 @click.option(
-    "--diarization-model", "-d",
+    "--diarization-model",
+    "-d",
     type=click.Choice(DIARIZATION_CHOICES),
     default=DiarizationModel.DIARIZATION_3_1.value,
-    help="Pyannote diarization model to use"
+    help="Pyannote diarization model to use",
 )
-@click.option(
-    "--verbose", "-v",
-    is_flag=True,
-    help="Verbose output"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def audio2json(
     audio_file: str,
     language: str,
@@ -132,7 +127,11 @@ def audio2json(
     meta = result.get("metadata", {})
     click.echo("\nSummary:", err=True)
     click.echo(f"  Whisper backend: {meta.get('whisper_backend', 'unknown')}", err=True)
-    click.echo(f"  Diarization model: {meta.get('diarization_model', 'unknown')}", err=True)
+    click.echo(
+        f"  Diarization model: {meta.get('diarization_model', 'unknown')}", err=True
+    )
     click.echo(f"  Speakers: {stats.get('total_speakers', 0)}", err=True)
     click.echo(f"  Speech segments: {stats.get('total_speech_segments', 0)}", err=True)
-    click.echo(f"  Speech duration: {stats.get('total_speech_duration', 0):.1f}s", err=True)
+    click.echo(
+        f"  Speech duration: {stats.get('total_speech_duration', 0):.1f}s", err=True
+    )

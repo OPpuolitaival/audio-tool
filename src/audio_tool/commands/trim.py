@@ -1,7 +1,5 @@
 """trim command - trim silence or segments from audio files."""
 
-from pathlib import Path
-
 import click
 
 from audio_tool.trimmer import detect_trim_points, trim_audio
@@ -11,43 +9,39 @@ from audio_tool.trimmer import detect_trim_points, trim_audio
 @click.argument("audio_file", type=click.Path(exists=True))
 @click.argument("output_file", type=click.Path(), required=False)
 @click.option(
-    "--start", "-s",
+    "--start",
+    "-s",
     type=float,
-    help="Manual start time in seconds (default: auto-detect)"
+    help="Manual start time in seconds (default: auto-detect)",
 )
 @click.option(
-    "--end", "-e",
-    type=float,
-    help="Manual end time in seconds (default: auto-detect)"
+    "--end", "-e", type=float, help="Manual end time in seconds (default: auto-detect)"
 )
 @click.option(
     "--silence-threshold",
     type=float,
     default=-40.0,
-    help="Silence threshold in dB (default: -40)"
+    help="Silence threshold in dB (default: -40)",
 )
 @click.option(
     "--keep-start",
     type=float,
     default=0.5,
-    help="Silence to keep at start in seconds (default: 0.5)"
+    help="Silence to keep at start in seconds (default: 0.5)",
 )
 @click.option(
     "--keep-end",
     type=float,
     default=2.0,
-    help="Silence to keep at end in seconds (default: 2.0)"
+    help="Silence to keep at end in seconds (default: 2.0)",
 )
 @click.option(
-    "--analyze-only", "-a",
+    "--analyze-only",
+    "-a",
     is_flag=True,
-    help="Only analyze and show recommended trim points"
+    help="Only analyze and show recommended trim points",
 )
-@click.option(
-    "--verbose", "-v",
-    is_flag=True,
-    help="Verbose output"
-)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def trim(
     audio_file: str,
     output_file: str | None,
@@ -105,7 +99,10 @@ def trim(
             )
 
             from audio_tool.analyzer import analyze_audio_quality
-            result = analyze_audio_quality(audio_file, silence_thresh_db=silence_threshold)
+
+            result = analyze_audio_quality(
+                audio_file, silence_thresh_db=silence_threshold
+            )
 
             click.echo("")
             click.echo(f"File: {audio_file}")
@@ -119,11 +116,15 @@ def trim(
             click.echo(f"  Start: {start_time:.2f} sec")
             click.echo(f"  End: {end_time:.2f} sec")
             click.echo(f"  New duration: {end_time - start_time:.2f} sec")
-            click.echo(f"  Would remove: {result.duration_sec - (end_time - start_time):.2f} sec")
+            click.echo(
+                f"  Would remove: {result.duration_sec - (end_time - start_time):.2f} sec"
+            )
 
         else:
             if not output_file:
-                raise click.UsageError("OUTPUT_FILE is required (or use --analyze-only)")
+                raise click.UsageError(
+                    "OUTPUT_FILE is required (or use --analyze-only)"
+                )
 
             click.echo(f"Trimming: {audio_file}", err=True)
 
