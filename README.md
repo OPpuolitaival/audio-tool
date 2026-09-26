@@ -47,39 +47,44 @@ uv run audio-tool audio2json -o output.json recording.mp3
 uv run audio-tool audio2json -v recording.mp3
 ```
 
-### Whisper Backends
+### Pipeline
+
+The transcription pipeline:
+
+1. pyannote speaker diarization (`speaker-diarization-3.1`) finds speech segments per speaker
+2. Whisper transcribes each speech segment (MLX large-v3 on Apple Silicon, whisper-timestamped elsewhere)
+3. Gap recovery: Silero VAD looks for speech in the stretches diarization did not call speech
+   (speech over music, foreign-language speech) and Whisper transcribes it one 30 s window at a
+   time, keeping only segments Whisper is confident about. Recovered segments carry `"recovered": true`
+4. Decoder loops are collapsed (a phrase repeated 3+ times in a row is kept once); segments that
+   still loop are dropped
+5. PANNs classifies the non-speech gaps (music / silence / speech / unknown), and speaker
+   embeddings are extracted
+
+Measured against hand-corrected transcripts, gap recovery and loop collapsing brought WER
+from 10.1 % to 7.9 %.
+
+### Whisper backend and model
 
 ```bash
-# Default: whisper-timestamped (CPU, works everywhere)
+# Default: auto-selects MLX large-v3 on Apple Silicon, whisper-timestamped elsewhere
 uv run audio-tool audio2json recording.mp3
 
-# MLX turbo (Mac only, fastest)
-uv run audio-tool audio2json -w mlx-turbo recording.mp3
+# Force the CPU backend
+uv run audio-tool audio2json -b whisper-timestamped recording.mp3
 
-# MLX large-v3 (Mac only, highest quality)
-uv run audio-tool audio2json -w mlx-large-v3 recording.mp3
+# Faster but less accurate MLX model (aliases: large-v3, turbo, medium, small, base, tiny,
+# or a full HuggingFace repo path)
+uv run audio-tool audio2json -w turbo recording.mp3
+
+# Skip speaker embeddings (diarization still runs)
+uv run audio-tool audio2json -s recording.mp3
+
+# Auto-detect the language
+uv run audio-tool audio2json -l "" recording.mp3
 ```
 
-For MLX backends on Mac, install mlx-whisper:
-```bash
-uv add mlx-whisper
-```
-
-### Diarization Models
-
-```bash
-# Default: pyannote 3.1 (faster loading)
-uv run audio-tool audio2json recording.mp3
-
-# Community model (faster inference)
-uv run audio-tool audio2json -d pyannote/speaker-diarization-community-1 recording.mp3
-```
-
-### Fastest Setup (Mac)
-
-```bash
-uv run audio-tool audio2json -w mlx-turbo -d pyannote/speaker-diarization-community-1 recording.mp3
-```
+`mlx-whisper` is installed automatically on Apple Silicon Macs.
 
 ### analyze
 
@@ -168,9 +173,9 @@ uv run audio-tool trim --keep-end 3.0 input.mp3 output.mp3
 
 JSON output includes:
 - `metadata` - Processing info (version, timestamps, models used)
-- `segments` - Speech and non-speech segments with timestamps
+- `segments` - Speech and non-speech segments with timestamps (non-speech segments carry a PANNs `classification`)
 - `speaker_embeddings` - Voice embeddings per speaker
-- `statistics` - Summary (speaker count, speech duration)
+- `statistics` - Summary (speaker count, speech duration, recovered gap speech)
 
 Example segment:
 ```json

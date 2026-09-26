@@ -13,6 +13,7 @@ audio-tool/
 │   ├── cli.py                  # Click group entry point
 │   ├── config.py               # HuggingFace token handling
 │   ├── transcriber.py          # Transcription engine (Whisper + Pyannote)
+│   ├── postprocess.py          # Pure helpers: gap recovery grouping, loop collapsing
 │   ├── normalization.py        # Audio normalization (FFmpeg filters)
 │   ├── analyzer.py             # Audio quality analysis (FFmpeg)
 │   ├── trimmer.py              # Audio trimming (FFmpeg)
@@ -32,7 +33,9 @@ audio-tool/
 
 ## Key Dependencies
 - **Whisper backends**: whisper-timestamped (CPU), mlx-whisper (Mac)
-- **Diarization**: pyannote-audio
+- **Diarization**: pyannote-audio (speaker-diarization-3.1)
+- **Gap recovery VAD**: faster-whisper (only its Silero VAD module)
+- **Non-speech classification**: panns-inference
 - **CLI**: click
 - **speechbrain**: Custom fork from OPpuolitaival for pyannote-audio 4.x compatibility
 
@@ -49,7 +52,7 @@ uv run audio-tool audio2json --help
 uv run audio-tool audio2json -l en recording.mp3
 
 # MLX backend (Mac, fastest)
-uv run audio-tool audio2json -w mlx-turbo recording.mp3
+uv run audio-tool audio2json -w turbo recording.mp3
 ```
 
 ## HuggingFace Token
