@@ -18,10 +18,14 @@ dependencies = [
     "librosa",
     "soundfile",
     "transformers",
+    # Only its Silero VAD module (faster_whisper.vad) is used: speech detection inside diarization gaps
+    "faster-whisper",
+    # Non-speech classification (music/silence/speech)
+    "panns-inference",
+    # MLX Whisper for Apple Silicon; falls back to whisper-timestamped elsewhere
+    "mlx-whisper; sys_platform == 'darwin' and platform_machine == 'arm64'",
     # Utilities
     "numpy",
-    "scipy",
-    "requests",
     "ruff>=0.14.14",
 ]
 
